@@ -1,0 +1,15 @@
+# This file contains configuration settings for deploying the application on Netlify.
+
+[build]
+  command = "npm run build"
+  publish = "client/dist"
+
+[dev]
+  command = "npm run start"
+  port = 5000
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
