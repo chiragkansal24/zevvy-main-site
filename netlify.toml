@@ -1,15 +1,19 @@
-# This file contains configuration settings for deploying the application on Netlify.
-
 [build]
-  command = "npm run build"
-  publish = "client/dist"
+  command = ""          # no build step
+  publish = "client"    # serve files directly from client
 
-[dev]
-  command = "npm run start"
-  port = 5000
+[build.environment]
+  NODE_VERSION = "18"
 
+# SPA fallback (optional)
 [[redirects]]
   from = "/*"
   to = "/index.html"
+  status = 200
+
+# API proxy to Render (optional)
+[[redirects]]
+  from = "/api/*"
+  to = "https://zevvy-main-site.onrender.com/api/:splat"
   status = 200
   force = true
