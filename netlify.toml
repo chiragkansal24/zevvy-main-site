@@ -2,7 +2,6 @@
   command = ""
   publish = "client"
 
-# Proxy frontend /api/* calls to Render backend
 [[redirects]]
   from = "/api/*"
   to = "https://zevvy-main-site.onrender.com/api/:splat"

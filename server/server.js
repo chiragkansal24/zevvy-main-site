@@ -1,3 +1,4 @@
+// ...existing code...
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -10,39 +11,31 @@ const reviewRoutes = require('./routes/reviews');
 const authMiddleware = require('./middleware/auth');
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL;
 
-// Middleware
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
-// Public health check
+// public health route
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-// Public routes (no auth)
+// public auth routes
 app.use('/api/users', userRoutes);
 
-// Protected routes (auth applied per-route)
+// protect specific routes only
 app.use('/api/chargers', authMiddleware, chargerRoutes);
 app.use('/api/geocode', authMiddleware, geocodeRoutes);
 app.use('/api/reviews', authMiddleware, reviewRoutes);
 
-// DB + server
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL;
 if (!MONGODB_URI) {
-    console.error('MONGODB_URI is missing');
-    process.exit(1);
+    console.error('❌ MONGODB_URI not set'); process.exit(1);
 }
 
-mongoose
-    .connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
-        console.log('MongoDB connected');
-        app.listen(PORT, '0.0.0.0', () => console.log(`Server running on ${PORT}`));
+        console.log('✅ MongoDB connected');
+        app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server running on ${PORT}`));
     })
-    .catch((err) => {
-        console.error('DB connection error:', err);
-        process.exit(1);
-    });
+    .catch(err => { console.error('DB error', err); process.exit(1); });
