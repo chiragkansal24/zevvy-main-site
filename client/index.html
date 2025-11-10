@@ -1,32 +1,231 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>EV Navigate</title>
-        <link href="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.css" rel="stylesheet" />
-        <link href="styles.css" rel="stylesheet" />
-    </head>
-    <body>
-        <div class="app-root">
-            <aside class="sidebar">
-                <header class="brand">
-                    <div class="logo">⚡</div>
-                    <h1>EV Navigate</h1>
-                </header>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Navigate</title>
 
-                <div class="panel-body">
-                    <p class="prompt">Please log in to plan a trip and find chargers.</p>
-                    <button id="loginBtn" class="btn-primary">Log In / Register</button>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="relative flex w-screen h-screen">
+        <aside id="sidebar" class="absolute top-0 left-0 z-20 flex flex-col h-full w-full max-w-md bg-white shadow-lg overflow-y-auto">
+            <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-30">
+                <div class="flex items-center gap-3">
+                    <span class="bg-[#007D85] p-2 rounded-lg text-white"><i data-lucide="zap"></i></span>
+                    <h1 class="text-xl font-bold">EV Navigate</h1>
                 </div>
-            </aside>
+        
+                <div id="user-menu-container" class="relative hidden">
+                        <button id="user-menu-btn" class="p-2 rounded-full hover:bg-gray-100">
+                                <i data-lucide="menu"></i>
+                        </button>
+                        <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 border">
+                                <a href="#" id="route-history-btn" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"><i data-lucide="route" class="w-5 h-5"></i>Route History</a>
+                                <a href="#" id="charger-history-btn" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"><i data-lucide="battery-charging" class="w-5 h-5"></i>Charger History</a>
+                                <a href="#" id="review-history-btn" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"><i data-lucide="star" class="w-5 h-5"></i>Review History</a>
+                                <div class="border-t"></div>
+                                <a href="#" id="logout-btn" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-gray-100"><i data-lucide="log-out" class="w-5 h-5"></i>Log Out</a>
+                        </div>
+                </div>
+            </div>
 
-            <main class="map-wrap">
-                <div id="map"></div>
-            </main>
+            <div id="logged-out-view" class="p-4 text-center hidden">
+                <p class="mb-4">Please log in to plan a trip and find chargers.</p>
+                <button id="show-login-btn" class="w-full bg-[#20C2AD] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#1aa895]">Log In / Register</button>
+            </div>
+
+            <div id="logged-in-view" class="hidden flex-grow flex flex-col">
+                <div class="p-4 border-b bg-white">
+                    <button id="vehicle-profile-btn" class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="car"></i>
+                            <div>
+                                <p class="font-semibold text-left">My Vehicle</p>
+                                <p id="vehicle-info" class="text-sm">Please set your vehicle</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="text-gray-400"></i>
+                    </button>
+                </div>
+
+                <div class="flex flex-col flex-grow">
+                    <div class="p-4 space-y-4 border-b flex-shrink-0">
+                        <div class="relative">
+                            <div class="relative flex items-center">
+                                <i data-lucide="map-pin" class="absolute top-1/2 -translate-y-1/2 left-3 w-5 h-5 text-gray-400"></i>
+                                <input type="text" id="start-input" placeholder="Start location" class="w-full pl-10 p-2 border rounded-lg" autocomplete="off">
+                                <button id="use-location-btn" class="absolute top-1/2 -translate-y-1/2 right-3 text-gray-500 hover:text-[#007D85]" title="Use my current location">
+                                    <i data-lucide="crosshair" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="start-suggestions" class="absolute z-20 w-full bg-white border rounded-lg mt-1 hidden shadow-lg"></div>
+                        </div>
+
+                        <div class="relative">
+                            <i data-lucide="map-pin" class="absolute top-3 left-3 w-5 h-5 text-gray-400"></i>
+                            <input type="text" id="destination-input" placeholder="Destination" class="w-full pl-10 p-2 border rounded-lg" autocomplete="off">
+                            <div id="destination-suggestions" class="absolute z-20 w-full bg-white border rounded-lg mt-1 hidden shadow-lg"></div>
+                        </div>
+
+                        <button id="plan-trip-btn" class="w-full flex items-center justify-center gap-2 bg-[#20C2AD] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#1aa895]">
+                            <i data-lucide="route"></i><span>Plan Trip</span>
+                        </button>
+            
+                        <button id="find-nearby-btn" class="w-full flex items-center justify-center gap-2 bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700">
+                                <i data-lucide="locate-fixed"></i><span>Find Nearby Stations</span>
+                        </button>
+
+                        <button id="suggest-activities-btn" class="w-full flex items-center justify-center gap-2 bg-[#007D85] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#006a70] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                            <i data-lucide="sparkles"></i><span>Suggest Activities</span>
+                        </button>
+                    </div>
+          
+                    <div id="results-panel" class="p-4 flex-grow overflow-y-auto">
+                        <p class="text-gray-500">Your trip details will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-grow relative">
+            <div id="map" class="w-full h-full z-0"></div>
+        </main>
+    </div>
+
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm relative">
+            <h2 class="text-2xl font-bold text-center mb-4">Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium">Email</label>
+                    <input type="email" id="login-email" required class="mt-1 w-full p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium">Password</label>
+                    <input type="password" id="login-password" required class="mt-1 w-full p-2 border rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-[#20C2AD] text-white font-bold py-3 rounded-lg hover:bg-[#1aa895]">Log In</button>
+            </form>
+            <p class="text-center text-sm mt-4">Don't have an account?
+                <a href="#" id="show-register-link" class="text-[#007D85] hover:underline">Register here</a>
+            </p>
+            <button id="close-login-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><i data-lucide="x"></i></button>
         </div>
+    </div>
 
-        <script src="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.js"></script>
-        <script src="script.js"></script>
-    </body>
+    <div id="register-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm relative">
+            <h2 class="text-2xl font-bold text-center mb-4">Register</h2>
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label for="register-username" class="block text-sm font-medium">Username</label>
+                    <input type="text" id="register-username" required class="mt-1 w-full p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="register-email" class="block text-sm font-medium">Email</label>
+                    <input type="email" id="register-email" required class="mt-1 w-full p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="register-password" class="block text-sm font-medium">Password</label>
+                    <input type="password" id="register-password" required class="mt-1 w-full p-2 border rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-[#20C2AD] text-white font-bold py-3 rounded-lg hover:bg-[#1aa895]">Register</button>
+            </form>
+            <p class="text-center text-sm mt-4">Already have an account?
+                <a href="#" id="show-login-link" class="text-[#007D85] hover:underline">Login here</a>
+            </p>
+            <button id="close-register-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><i data-lucide="x"></i></button>
+        </div>
+    </div>
+
+    <div id="vehicle-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Your Vehicle Profile</h2>
+                <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800"><i data-lucide="x"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="car-model" class="block text-sm font-medium">Car Model</label>
+                    <select id="car-model" class="mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm focus:ring-[#20C2AD] focus:border-[#20C2AD]">
+                        <option>Tesla Model 3</option><option>Tesla Model Y</option><option>Hyundai Ioniq 5</option><option>Kia EV6</option>
+                        </select>
+                </div>
+                <div>
+                    <label for="car-range" class="block text-sm font-medium">Max Range (km)</label>
+                    <input type="number" id="car-range" value="450" class="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#20C2AD] focus:outline-none">
+                </div>
+                <div>
+                    <label for="battery-capacity" class="block text-sm font-medium">Battery Capacity (kWh)</label>
+                    <input type="number" id="battery-capacity" value="75" class="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#20C2AD] focus:outline-none">
+                </div>
+                <div>
+                    <label for="current-charge" class="block text-sm font-medium">Current Charge (%)</label>
+                    <input type="range" id="current-charge" min="0" max="100" value="80" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    <p class="text-center font-semibold mt-1"><span id="current-charge-label">80</span>%</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="save-vehicle-btn" class="bg-[#20C2AD] text-white font-bold py-2 px-6 rounded-lg hover:bg-[#1aa895] transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="activities-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg max-h-[90vh] flex flex-col relative">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-xl font-bold">Activities in <span id="activities-destination" class="text-[#007D85]"></span></h2>
+                <button id="close-activities-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800"><i data-lucide="x"></i></button>
+            </div>
+            <div id="activities-content" class="flex-grow overflow-y-auto custom-scrollbar pr-2"></div>
+        </div>
+    </div>
+
+    <div id="review-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
+                <h2 class="text-xl font-bold mb-4">Write a Review for <span id="review-station-name" class="text-[#007D85]">Station</span></h2>
+                <form id="review-form" class="space-y-4">
+                        <input type="hidden" id="review-station-id">
+                        <input type="hidden" id="review-id-edit">
+                        <div>
+                                <label class="block text-sm font-medium mb-1">Rating</label>
+                                <div id="review-rating-stars" class="flex items-center gap-1 text-3xl text-gray-300">
+                                        <button type="button" data-value="1" class="star">★</button>
+                                        <button type="button" data-value="2" class="star">★</button>
+                                        <button type="button" data-value="3" class="star">★</button>
+                                        <button type="button" data-value="4" class="star">★</button>
+                                        <button type="button" data-value="5" class="star">★</button>
+                                </div>
+                                <input type="hidden" id="review-rating" required>
+                        </div>
+                        <div>
+                                <label for="review-text" class="block text-sm font-medium">Your Review</label>
+                                <textarea id="review-text" rows="4" required class="mt-1 w-full p-2 border rounded-lg"></textarea>
+                        </div>
+                        <button type="submit" id="submit-review-btn" class="w-full bg-[#20C2AD] text-white font-bold py-3 rounded-lg hover:bg-[#1aa895]">Submit Review</button>
+                </form>
+                <button id="close-review-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><i data-lucide="x"></i></button>
+        </div>
+    </div>
+
+    <div id="history-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col relative">
+                <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                        <h2 id="history-modal-title" class="text-xl font-bold">History</h2>
+                        <button id="close-history-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800"><i data-lucide="x"></i></button>
+                </div>
+                <div id="history-modal-content" class="flex-grow overflow-y-auto pr-2">
+                        </div>
+        </div>
+    </div>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.js"></script>
+    <script src="script.js"></script>
+</body>
 </html>
