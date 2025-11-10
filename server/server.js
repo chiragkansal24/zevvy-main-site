@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const userRoutes = require('./routes/users');
 const chargerRoutes = require('./routes/chargers');
 const geocodeRoutes = require('./routes/geocode');
@@ -13,14 +14,20 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
-app.use(authMiddleware);
+
+// Health check (useful for Render)
+app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // Routes
+// Public routes first (login/register)
 app.use('/api/users', userRoutes);
-app.use('/api/chargers', chargerRoutes);
-app.use('/api/geocode', geocodeRoutes);
-app.use('/api/reviews', reviewRoutes);
+
+// Protected routes
+app.use('/api/chargers', authMiddleware, chargerRoutes);
+app.use('/api/geocode', authMiddleware, geocodeRoutes);
+app.use('/api/reviews', authMiddleware, reviewRoutes);
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
