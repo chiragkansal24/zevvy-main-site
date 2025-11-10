@@ -1,19 +1,11 @@
 [build]
-  command = ""          # no build step
-  publish = "client"    # serve files directly from client
+  command = ""
+  publish = "client"
 
-[build.environment]
-  NODE_VERSION = "18"
-
-# SPA fallback (optional)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# API proxy to Render (optional)
+# Proxy frontend /api/* calls to Render backend
 [[redirects]]
   from = "/api/*"
   to = "https://zevvy-main-site.onrender.com/api/:splat"
   status = 200
   force = true
+  to = "https://zevvy-main-site.onrender.com/api/:splat"

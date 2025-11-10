@@ -4,103 +4,13 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Zevvy</title>
-        <link rel="stylesheet" href="./styles.css" />
         <link href="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.css" rel="stylesheet" />
+        <link rel="stylesheet" href="./styles.css" />
     </head>
     <body>
-        <header class="topbar">
-            <div class="brand">Zevvy</div>
-            <div id="user-menu-container" class="user-menu">
-                <button id="user-menu-btn" class="btn">Menu ▾</button>
-                <div class="dropdown">
-                    <button id="vehicle-profile-btn" class="link">Vehicle</button>
-                    <button id="logout-btn" class="link">Log out</button>
-                </div>
-            </div>
-            <button id="show-login-btn" class="btn primary">Log in</button>
-        </header>
-
-        <main class="layout">
-            <aside class="panel">
-                <div id="logged-out-view">
-                    <p>Please log in to plan trips.</p>
-                    <button id="show-login-btn-2" class="btn primary">Log in</button>
-                </div>
-
-                <div id="logged-in-view" style="display:none;">
-                    <div class="field">
-                        <label>Start</label>
-                        <input id="start-input" placeholder="Enter start" />
-                        <div id="start-suggestions" class="suggestions"></div>
-                    </div>
-                    <div class="field">
-                        <label>Destination</label>
-                        <input id="destination-input" placeholder="Enter destination" />
-                        <div id="destination-suggestions" class="suggestions"></div>
-                    </div>
-                    <div class="actions">
-                        <button id="use-location-btn" class="btn">Use my location</button>
-                        <button id="plan-trip-btn" class="btn primary">Plan trip</button>
-                        <button id="find-nearby-btn" class="btn">Nearby chargers</button>
-                        <button id="suggest-activities-btn" class="btn">Suggest activities</button>
-                    </div>
-                    <div class="vehicle">
-                        <p id="vehicle-info">No vehicle set</p>
-                        <button id="vehicle-profile-btn-2" class="btn">Set vehicle</button>
-                    </div>
-                    <div id="results-panel" class="results"></div>
-                </div>
-            </aside>
-
-            <section id="map" class="map"></section>
-        </main>
-
-        <!-- Login Modal -->
-        <div id="login-modal" class="modal">
-            <div class="modal-content">
-                <button id="close-login-modal-btn" class="close">×</button>
-                <h2>Log in</h2>
-                <form id="login-form">
-                    <input name="email" type="email" placeholder="Email" required />
-                    <input name="password" type="password" placeholder="Password" required />
-                    <button type="submit" class="btn primary">Log in</button>
-                </form>
-                <p>No account? <a id="show-register-link" href="#">Register</a></p>
-            </div>
-        </div>
-
-        <!-- Register Modal -->
-        <div id="register-modal" class="modal">
-            <div class="modal-content">
-                <button id="close-register-modal-btn" class="close">×</button>
-                <h2>Register</h2>
-                <form id="register-form">
-                    <input name="name" placeholder="Name" required />
-                    <input name="email" type="email" placeholder="Email" required />
-                    <input name="password" type="password" placeholder="Password" required />
-                    <button type="submit" class="btn primary">Create account</button>
-                </form>
-                <p>Have an account? <a id="show-login-link" href="#">Log in</a></p>
-            </div>
-        </div>
-
-        <!-- Vehicle Modal -->
-        <div id="vehicle-modal" class="modal">
-            <div class="modal-content">
-                <button id="close-modal-btn" class="close">×</button>
-                <h2>Vehicle profile</h2>
-                <input id="car-model" placeholder="Model (e.g., Tesla Model 3)" />
-                <input id="car-range" type="number" placeholder="Range (km)" />
-                <input id="battery-capacity" type="number" placeholder="Battery (kWh)" />
-                <label>
-                    Current charge: <span id="current-charge-label">80%</span>
-                    <input id="current-charge" type="range" min="0" max="100" value="80" />
-                </label>
-                <button id="save-vehicle-btn" class="btn primary">Save</button>
-            </div>
-        </div>
+        <div id="map"></div>
 
         <script src="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.js"></script>
         <script src="./script.js"></script>
     </body>
-    </html>
+</html>
