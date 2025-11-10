@@ -3,14 +3,30 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Zevvy</title>
+        <title>EV Navigate</title>
         <link href="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.css" rel="stylesheet" />
-        <link rel="stylesheet" href="./styles.css" />
+        <link href="styles.css" rel="stylesheet" />
     </head>
     <body>
-        <div id="map"></div>
+        <div class="app-root">
+            <aside class="sidebar">
+                <header class="brand">
+                    <div class="logo">⚡</div>
+                    <h1>EV Navigate</h1>
+                </header>
+
+                <div class="panel-body">
+                    <p class="prompt">Please log in to plan a trip and find chargers.</p>
+                    <button id="loginBtn" class="btn-primary">Log In / Register</button>
+                </div>
+            </aside>
+
+            <main class="map-wrap">
+                <div id="map"></div>
+            </main>
+        </div>
 
         <script src="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.js"></script>
-        <script src="./script.js"></script>
+        <script src="script.js"></script>
     </body>
 </html>
